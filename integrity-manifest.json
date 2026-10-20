@@ -1,0 +1,276 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-03T13:35:28.866Z",
+  "files": [
+    {
+      "path": "main.js",
+      "sha256": "dd3ecb60fca6eabe06dff28259dfe0410beea714db29fe57cf7d531c72e38c95",
+      "bytes": 256702
+    },
+    {
+      "path": "renderer.js",
+      "sha256": "d9d1532bf473cce7e0f3746c37decc2994baa54267e848464b3a1fc1d120dc54",
+      "bytes": 109874
+    },
+    {
+      "path": "preload.js",
+      "sha256": "71f354531612de4c4c809bff5ecf5d7e1c697d3b270cf764cf054bd6c2703f4d",
+      "bytes": 5821
+    },
+    {
+      "path": "emotion/emotion.js",
+      "sha256": "0ccabb935676ba75eb9048e7e5b1c2216a13390371c67507a6fecfa38d07e4f9",
+      "bytes": 18430
+    },
+    {
+      "path": "discord/discord-bot.js",
+      "sha256": "7555bf6679cd7f29c9bd2d2a04f77797706e2a8f15a3f17f2f132d75589c1ec4",
+      "bytes": 129617
+    },
+    {
+      "path": "music/music.js",
+      "sha256": "911e17983d3054c46c0e18545205a161dd76354baa8d65d90b658fbd9c9c90d6",
+      "bytes": 17499
+    },
+    {
+      "path": "package.json",
+      "sha256": "40e5b549cf8c1dbe805f43d24a1729b57ed077cdebb7bc064d3393b126e75fa4",
+      "bytes": 2426
+    },
+    {
+      "path": "developer-console.html",
+      "sha256": "b91221d873cbaf9bd475376a09c1ac3c53b73818b5f5a4f8aeab8bcf48a4aa3a",
+      "bytes": 66277
+    },
+    {
+      "path": "memory-manager.html",
+      "sha256": "27f0101ecd2e6c6e7532fef7ba3cf48beec0952a74ac9784d33caf1db987579b",
+      "bytes": 21189
+    },
+    {
+      "path": "services/memory-manager.js",
+      "sha256": "b52e28ae81371b995f9d0786c0fc7cf2160dab0b30f0462e021f857635648964",
+      "bytes": 19625
+    },
+    {
+      "path": "services/tts-cache.js",
+      "sha256": "89994f83b3a13808556cd7ed42061605bcf0f7f7d484331213f3f47b24347f3c",
+      "bytes": 3529
+    },
+    {
+      "path": "services/decision-engine.js",
+      "sha256": "a6ac3172a97de46d969ae3a88bfb204c2114a2adcc536fbb18f53e02b963d0b8",
+      "bytes": 8380
+    },
+    {
+      "path": "services/episodic-memory.js",
+      "sha256": "26af93c5b012628546b72b57b0dba1674ef7400f3e1890ec0bf87e94407f1ccd",
+      "bytes": 8111
+    },
+    {
+      "path": "services/screen-activity.js",
+      "sha256": "989facbfb7c3b3c36bc42d69d056579beeb2ad9041e16f40bb5851424fc949b8",
+      "bytes": 1688
+    },
+    {
+      "path": "services/context-fusion.js",
+      "sha256": "bda4414b9b55c6b97ec5dd2f68b57177bed423dedc811752f746f87e74a610a6",
+      "bytes": 5996
+    },
+    {
+      "path": "services/attention-state.js",
+      "sha256": "4b87539c4613f613292ec94ad436d0935620e49ff2ac2b178a69d67deae0736e",
+      "bytes": 6209
+    },
+    {
+      "path": "services/brain-core.js",
+      "sha256": "35f6df2249f6341ea92aea3e10a8d9f044803265cc3296d296c1e642d76c09e7",
+      "bytes": 16364
+    },
+    {
+      "path": "services/action-planner.js",
+      "sha256": "50eedcca193c4f1b1f1133776b749d7f561edab44461e0266432d519dd44af79",
+      "bytes": 9551
+    },
+    {
+      "path": "services/agency-loop.js",
+      "sha256": "6720f0dc85d814d18fcf774e876cef8f53543cba48de27824085f811897756c0",
+      "bytes": 3698
+    },
+    {
+      "path": "services/screen-watch.js",
+      "sha256": "0a21ac71754878fee9e2e2abba452a4c971e71e02895f3fdf569093eb71283db",
+      "bytes": 3856
+    },
+    {
+      "path": "services/prediction-learning.js",
+      "sha256": "89c5430e859c3488c5613bc8454ea29c540f3d8a42de1d3b30e41d6a1bcf6946",
+      "bytes": 8535
+    },
+    {
+      "path": "voice-chat/speech-pacing.js",
+      "sha256": "ce09d19d7e0e8c692719365dbadc70f0b686ac5990d0fed1aaf7cc7ee28d8b74",
+      "bytes": 8312
+    },
+    {
+      "path": "models/Akuro/akuro.model3.json",
+      "sha256": "aa294aea5769ebe8ffda9a199729922b7ef31e0f882b42541071251196aad547",
+      "bytes": 426
+    },
+    {
+      "path": "models/Akuro/akuro.moc3",
+      "sha256": "9010f8e1383d71d15e31fc597487e22ed065ecb5d33bd5bedb0d720c1bc29445",
+      "bytes": 4046592
+    },
+    {
+      "path": "models/Akuro/akuro.physics3.json",
+      "sha256": "2fb4a62ce0948b0ba083670e100a32bc91fbbb6e094e8fe5ccd4bdded1efd552",
+      "bytes": 60662
+    },
+    {
+      "path": "models/Akuro/akuro.cdi3.json",
+      "sha256": "71e679d6e5f1d91ea667be89f33d6a94243b1657ec4f489c1de56bec39d449fb",
+      "bytes": 19355
+    },
+    {
+      "path": "live2dcubismcore.min.js",
+      "sha256": "25ae938cb4fe282ce189b357bcc97e603d1e1f7ec78bf04150d401c23cdc792f",
+      "bytes": 207155
+    },
+    {
+      "path": "services/learning.js",
+      "sha256": "302f22690bcc7d452923a51578425d151b22b207bf5fb6116399daf9348d38c0",
+      "bytes": 7542
+    },
+    {
+      "path": "services/life-util.js",
+      "sha256": "824009adbd48ef8e451c23f2f41ada2709e2b01d8fe7e2169fcab59a3d4c996d",
+      "bytes": 3655
+    },
+    {
+      "path": "services/self-learning.js",
+      "sha256": "1c6bfde44f385b8c3ff03f72c2bc6c797ad7b1f199b5dd73892072d8a40e36c9",
+      "bytes": 7559
+    },
+    {
+      "path": "services/goal-engine.js",
+      "sha256": "13453a77559796bb2d344129b06226a304d7aba981757876440932315b93a123",
+      "bytes": 12249
+    },
+    {
+      "path": "services/reflection.js",
+      "sha256": "86f2df8ddf2fa1cd2fa514b55dc914693d7cda00a41f43333cf443f0f9fed52c",
+      "bytes": 7187
+    },
+    {
+      "path": "services/idle-life.js",
+      "sha256": "57858caae135c5fa494b7a6e1acdcd15de7027e256d8600598a9a37a572b9909",
+      "bytes": 7495
+    },
+    {
+      "path": "services/structured-memory.js",
+      "sha256": "e2acd5d2b6f15970e3f27de52f4369c5105bb3b4485b622a3a08e812f64e33ed",
+      "bytes": 10054
+    },
+    {
+      "path": "services/action-executor.js",
+      "sha256": "0fc6cfcbafd2c05b09b4e3872e055625708d387fcf8b8b6911abc6e192954df5",
+      "bytes": 15694
+    },
+    {
+      "path": "services/companion.js",
+      "sha256": "f5930f0ba5e53d0c56e40b67b619b4ab0cdf65b75905944fe9ba2d538a0b2ad3",
+      "bytes": 24357
+    },
+    {
+      "path": "services/autonomous-life.js",
+      "sha256": "8dfb3e13944b4e53232f0854828810af017d61fd0d5712f100bf87ef888c48f2",
+      "bytes": 5110
+    },
+    {
+      "path": "services/speech-stream.js",
+      "sha256": "c43a18b1f5cebba61e085cf28f8f3c9b8728f384d05aa81b66130c07b9e0d50c",
+      "bytes": 4002
+    },
+    {
+      "path": "services/internal-state.js",
+      "sha256": "48af1f9d16048830220cce06ba2fc5339888476351cbc82456b97f5bd46e5652",
+      "bytes": 9598
+    },
+    {
+      "path": "services/motivation.js",
+      "sha256": "ace59892cbf63378af13f2907875dd69a6c5664bf3376cd9a91ac8dbe0f38522",
+      "bytes": 4708
+    },
+    {
+      "path": "services/world-model.js",
+      "sha256": "43687eebf0490a034d139777acdc8813ed07b34b8fe71ca1497b1ffef85c747a",
+      "bytes": 5919
+    },
+    {
+      "path": "services/episode-memory.js",
+      "sha256": "b06462e4ee965233ecf4e8f4f01f1c4b1031db92124470e42027480568e98252",
+      "bytes": 4179
+    },
+    {
+      "path": "services/relationship-engine.js",
+      "sha256": "b6c8f0c11c11231a2273762b57fb1d1d1dd6f17ec56f50d8e930dca530f9247d",
+      "bytes": 3147
+    },
+    {
+      "path": "services/skill-system.js",
+      "sha256": "ce00a54e30d7ad4585988dbf9ecaa7c0bcd1c4a09ceec97faa1ee486b76c3164",
+      "bytes": 3706
+    },
+    {
+      "path": "services/consequence-engine.js",
+      "sha256": "e8fd3428126786620bb384da679e0dfee263adf44c3305d1e7b14a8b0922949a",
+      "bytes": 1128
+    },
+    {
+      "path": "services/project-life.js",
+      "sha256": "f7a5745285b48c5de4c2f27dded43326e287f5b3cc551902bc717989cd749503",
+      "bytes": 18665
+    },
+    {
+      "path": "services/error-log.js",
+      "sha256": "806cac1764985c52c4d61762df4106609228a978d50591ed522f949060e60218",
+      "bytes": 1872
+    },
+    {
+      "path": "services/speech-gate.js",
+      "sha256": "e9fad85f235af7bc1beabe9dd3ad161fdfcf3a13e353445be463311ec3a20c2c",
+      "bytes": 3178
+    },
+    {
+      "path": "services/shadow-pipeline.js",
+      "sha256": "35e62432e64b08bdd1b5a9ebbd3e414573bb29d154c0b8a5061e9be1f59051e0",
+      "bytes": 9183
+    },
+    {
+      "path": "services/delayed-reaction.js",
+      "sha256": "49f69c8249f7f1ee2fc3d9c1550209645bed78ab72f11b37a51104f01edc3b07",
+      "bytes": 5490
+    },
+    {
+      "path": "services/music-intent.js",
+      "sha256": "5fed928674a9e6016f9e63fa83183d900df167f7c3676e5a33597d58c3a85253",
+      "bytes": 3598
+    },
+    {
+      "path": "services/event-understanding.js",
+      "sha256": "9eb89f043f3491edd27927fd019579c5597a5c4e8ff4ea814a1c1248ceac785d",
+      "bytes": 7633
+    },
+    {
+      "path": "services/usage-tracker.js",
+      "sha256": "20c1484780b583a5337a8b392392137c16cf9c5c7870f2b7de78e8a442a1a2b6",
+      "bytes": 6550
+    },
+    {
+      "path": "services/repetition-guard.js",
+      "sha256": "cff18ea7bcb0fef8869a62abb41bba43eaf6e0fdfc37b2d2e34dc93ea1c2fdd4",
+      "bytes": 3029
+    }
+  ]
+}

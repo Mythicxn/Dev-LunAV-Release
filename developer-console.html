@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>LunAV Developer Console</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; width: 100%; height: 100%; background: #0b0c11; color: #d8dce5; font-family: Consolas, 'Cascadia Mono', monospace; overflow: hidden; }
+    * { box-sizing: border-box; }
+    #app { display: flex; flex-direction: column; width: 100%; height: 100%; }
+    #head { height: 46px; flex: 0 0 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: #15171e; border-bottom: 1px solid #2b2f3a; }
+    #title { font-family: 'Segoe UI', Arial, sans-serif; font-weight: 700; font-size: 14px; }
+    #badge { margin-left: 8px; padding: 3px 7px; border-radius: 6px; background: #263244; color: #9ac7ff; font: 700 10px 'Segoe UI', Arial, sans-serif; letter-spacing: .7px; }
+    #tools { display: flex; gap: 6px; }
+    button { border: 1px solid #353b48; background: #20232c; color: #cdd2dc; border-radius: 7px; padding: 5px 9px; cursor: pointer; font: 12px 'Segoe UI', Arial, sans-serif; }
+    button:hover { background: #2b303b; color: #fff; }
+    #meta { flex: 0 0 auto; min-height: 28px; padding: 6px 10px; background: #101218; color: #7f8797; font-size: 11px; border-bottom: 1px solid #20242d; }
+    #body { display: flex; flex: 1 1 auto; min-height: 0; }
+    #logs { flex: 1 1 auto; min-width: 0; min-height: 0; overflow-y: auto; padding: 9px; }
+    .line { display: grid; grid-template-columns: 72px 88px minmax(0,1fr); gap: 8px; padding: 5px 8px; margin-bottom: 3px; border-left: 2px solid #303643; background: rgba(255,255,255,.018); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; font-size: 12px; }
+    .time { color: #606878; }
+    .level { color: #96a0b4; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .line.decision { border-left-color: #a98be6; background: rgba(140,100,220,.07); }
+    .line.decision .level { color: #c7b0ff; }
+    .line.net { border-left-color: #e0b062; background: rgba(200,150,50,.07); }
+    .line.net .level { color: #f0c987; }
+    #filter { border: 1px solid #353b48; background: #20232c; color: #cdd2dc; border-radius: 7px; padding: 5px 7px; font: 12px 'Segoe UI', Arial, sans-serif; margin-right: 6px; }
+    .text { color: #d8dce5; }
+    .line.search { border-left-color: #4cae9b; background: rgba(59,151,132,.07); }
+    .line.search .level { color: #74d2bd; }
+    .line.error, .line.warn { border-left-color: #e46e6e; background: rgba(155,40,40,.10); }
+    .line.error .level { color: #ff8f8f; }
+    .line.warn .level { color: #ffc37e; }
+    .line.chat { border-left-color: #6d8fe6; }
+    .line.tts { border-left-color: #c783bd; }
+    .line.screen, .line.watch { border-left-color: #7ea7c9; }
+    .line.touch { border-left-color: #8fcf91; }
+    .line.touch-debug { border-left-color: #8a91a7; opacity: .82; }
+    #empty { color: #677082; text-align: center; padding: 30px 10px; font-size: 12px; }
+
+    #side { flex: 0 0 280px; width: 280px; min-width: 280px; border-left: 1px solid #2b2f3a; background: #101218; overflow-y: auto; }
+    .panel { padding: 14px; border-bottom: 1px solid #252a34; }
+    .panel-title { color: #aeb6c5; font: 700 11px 'Segoe UI', Arial, sans-serif; letter-spacing: .8px; text-transform: uppercase; }
+    .storage-total { margin-top: 8px; font: 700 16px 'Segoe UI', Arial, sans-serif; color: #eef1f6; }
+    .storage-sub { margin-top: 3px; color: #6f7788; font-size: 10px; }
+    #storage-bar { display: flex; width: 100%; height: 13px; margin-top: 13px; border-radius: 5px; overflow: hidden; background: #222630; border: 1px solid #303542; }
+    .seg { height: 100%; min-width: 0; transition: width .35s ease; }
+    .seg.models { background: #76b7ff; }
+    .seg.runtime { background: #9c8cff; }
+    .seg.other { background: #5f687a; }
+    #storage-legend { display: grid; gap: 7px; margin-top: 13px; }
+    .storage-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; font-size: 10px; }
+    .dot { width: 8px; height: 8px; border-radius: 2px; }
+    .dot.models { background: #76b7ff; }
+    .dot.runtime { background: #9c8cff; }
+    .dot.other { background: #5f687a; }
+    .storage-name { color: #aeb6c5; }
+    .storage-size { color: #dce1e9; font-variant-numeric: tabular-nums; }
+    #storage-updated { margin-top: 12px; color: #606878; font-size: 9px; }
+    .storage-error { color: #ff8f8f; font-size: 10px; margin-top: 9px; line-height: 1.4; }
+
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 11px; }
+    .setting-name { color: #d9dde6; font: 600 11px 'Segoe UI', Arial, sans-serif; }
+    .setting-desc { margin-top: 4px; color: #697284; font-size: 9px; line-height: 1.45; }
+    .switch { position: relative; display: inline-flex; flex: 0 0 auto; width: 38px; height: 21px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; border-radius: 12px; background: #2a2e38; border: 1px solid #3a404c; cursor: pointer; transition: .18s; }
+    .slider::before { content: ''; position: absolute; width: 15px; height: 15px; left: 2px; top: 2px; border-radius: 50%; background: #8a91a0; transition: .18s; }
+    .switch input:checked + .slider { background: #315f55; border-color: #4f8f7e; }
+    .switch input:checked + .slider::before { transform: translateX(17px); background: #a4e2cf; }
+    #tracking-status { margin-top: 8px; color: #8b94a5; font-size: 10px; }
+    #tracking-status.on { color: #8fd3bd; }
+    #tracking-status.off { color: #7d8492; }
+
+    .field-label { margin-top: 11px; color: #aeb6c5; font: 600 10px 'Segoe UI', Arial, sans-serif; }
+    .field-row { margin-top: 6px; }
+    .field-row input { width: 100%; padding: 7px 9px; border-radius: 6px; border: 1px solid #353b48; background: #1a1d25; color: #e2e6ee; font: 11px Consolas, 'Cascadia Mono', monospace; }
+    .field-row input:focus { outline: none; border-color: #5a6478; }
+    .field-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .field-actions button { flex: 1 1 auto; }
+    .field-status { margin-top: 8px; color: #8b94a5; font-size: 10px; line-height: 1.4; }
+    .field-status.on { color: #8fd3bd; }
+    .field-status.off { color: #ffc37e; }
+    .field-note { margin-top: 10px; color: #697284; font-size: 9px; line-height: 1.5; }
+    .field-note code { background: #1a1d25; border: 1px solid #2b303b; border-radius: 4px; padding: 1px 4px; color: #9ac7ff; }
+
+    /* Accordion gộp các mục Key/Token (Gemini, Tavily, Discord...) lại cho gọn - bấm vào tiêu đề để
+       trượt xuống/lên. Dùng kỹ thuật CSS Grid (grid-template-rows 0fr <-> 1fr) để trượt mượt mà tự
+       co giãn theo chiều cao nội dung thật, không cần JS đo pixel. */
+    #keys-accordion { border-bottom: 1px solid #252a34; }
+    #keys-toggle {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 14px; background: transparent; border: none; border-radius: 0; cursor: pointer;
+      color: #aeb6c5; font: 700 11px 'Segoe UI', Arial, sans-serif; letter-spacing: .8px; text-transform: uppercase;
+    }
+    #keys-toggle:hover { background: rgba(255,255,255,.03); color: #d8dce5; }
+    #keys-toggle .accordion-arrow { flex: 0 0 auto; font-size: 10px; color: #7d8492; transition: transform .25s ease; }
+    #keys-accordion.open #keys-toggle .accordion-arrow { transform: rotate(180deg); }
+    #keys-accordion-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; }
+    #keys-accordion.open #keys-accordion-wrap { grid-template-rows: 1fr; }
+    #keys-accordion-inner { overflow: hidden; }
+    #keys-accordion-inner .panel:last-child { border-bottom: none; }
+
+
+    .accordion { border-bottom: 1px solid #252a34; }
+    .accordion-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px; background:transparent; border:none; border-radius:0; color:#aeb6c5; font:700 11px 'Segoe UI',Arial,sans-serif; letter-spacing:.8px; text-transform:uppercase; }
+    .accordion-toggle:hover { background:rgba(255,255,255,.03); color:#d8dce5; }
+    .accordion-arrow { transition:transform .25s ease; color:#7d8492; }
+    .accordion.open .accordion-arrow { transform:rotate(180deg); }
+    .accordion-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows .28s ease; }
+    .accordion.open .accordion-wrap { grid-template-rows:1fr; }
+    .accordion-inner { overflow:hidden; }
+    .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:9px; }
+    .mode-btn { padding:8px 6px; font-size:10px; }
+    .mode-btn.active { border-color:#4f8f7e; background:#263b37; color:#a4e2cf; }
+    .perf-stat { margin-top:8px; padding:8px; border:1px solid #2a303b; border-radius:6px; background:#171a21; color:#aeb6c5; font-size:10px; line-height:1.5; white-space:pre-line; }
+    .manager-btn { width:100%; margin-top:10px; }
+    .permission-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:9px; }
+    .permission-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 9px; border:1px solid #2a303b; border-radius:7px; background:#171a21; color:#aeb6c5; font-size:10px; }
+    .compact-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:9px; }
+    .compact-grid label { color:#8b94a5; font-size:9px; }
+    .compact-grid input[type=number] { width:100%; margin-top:4px; padding:6px 7px; border-radius:6px; border:1px solid #353b48; background:#1a1d25; color:#e2e6ee; font:10px Consolas,monospace; }
+    .mini-save { width:100%; margin-top:8px; }
+    .check-row { display:flex; align-items:center; gap:7px; margin-top:9px; color:#aeb6c5; font-size:10px; }
+    #runtime-accordion { border-bottom: 1px solid #252a34; }
+    #runtime-toggle {
+      width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+      padding:14px; background:transparent; border:none; border-radius:0; cursor:pointer;
+      color:#aeb6c5; font:700 11px 'Segoe UI',Arial,sans-serif; letter-spacing:.8px; text-transform:uppercase;
+    }
+    #runtime-toggle:hover { background:rgba(255,255,255,.03); color:#d8dce5; }
+    #runtime-toggle .accordion-arrow { transition:transform .25s ease; color:#7d8492; }
+    #runtime-accordion.open #runtime-toggle .accordion-arrow { transform:rotate(180deg); }
+    #runtime-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows .28s ease; }
+    #runtime-accordion.open #runtime-wrap { grid-template-rows:1fr; }
+    #runtime-inner { overflow:hidden; }
+    #runtime-inner > .panel:last-child,
+    #runtime-inner > .accordion:last-child { border-bottom:none; }
+
+    /* Curious Observer confirmation */
+    #observer-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:50; background:rgba(4,5,9,.72); backdrop-filter:blur(5px); }
+    #observer-modal.show { display:flex; animation:modalFade .16s ease-out; }
+    .observer-card { width:min(330px,calc(100vw - 28px)); padding:18px; border:1px solid #3a4050; border-radius:14px; background:#151821; box-shadow:0 18px 55px rgba(0,0,0,.5); }
+    .observer-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background:#263b37; color:#a4e2cf; font-size:19px; }
+    .observer-title { margin-top:12px; color:#eef1f6; font:700 14px 'Segoe UI',Arial,sans-serif; }
+    .observer-copy { margin-top:7px; color:#8b94a5; font:11px/1.55 'Segoe UI',Arial,sans-serif; }
+    .observer-warning { margin-top:11px; padding:9px 10px; border:1px solid #4a3b2b; border-radius:8px; background:#201b16; color:#d7b88c; font:10px/1.45 'Segoe UI',Arial,sans-serif; }
+    .observer-actions { display:flex; gap:7px; margin-top:14px; }
+    .observer-actions button { flex:1; padding:8px 10px; }
+    .observer-actions .primary { border-color:#4f8f7e; background:#263b37; color:#a4e2cf; }
+    @keyframes modalFade { from { opacity:0; } to { opacity:1; } }
+
+    @media (max-width: 760px) {
+      #side { flex-basis: 245px; width: 245px; min-width: 245px; }
+    }
+    @media (max-width: 660px) {
+      #side { flex-basis: 220px; width: 220px; min-width: 220px; }
+      .line { grid-template-columns: 64px 52px minmax(0,1fr); gap: 5px; }
+    }
+  
+    .usage-sum { font:12px 'Segoe UI',Arial,sans-serif; color:#cfd4df; padding:12px 14px 4px; line-height:1.55; }
+    .usage-note { font:11px 'Segoe UI',Arial,sans-serif; color:#7d8492; padding:0 14px 8px; line-height:1.5; }
+    .usage-fn { padding:10px 14px; border-top:1px solid #252a34; }
+    .usage-fn-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font:700 12px 'Segoe UI',Arial,sans-serif; color:#e3e7ef; }
+    .usage-chip { font:600 10px 'Segoe UI',Arial,sans-serif; padding:2px 7px; border-radius:9px; background:#262c38; color:#9fb3ff; white-space:nowrap; }
+    .usage-chip.bg { color:#8fe0b0; }
+    .usage-desc { font:11px 'Segoe UI',Arial,sans-serif; color:#8b93a3; margin:3px 0 4px; line-height:1.45; }
+    .usage-nums { font:11px Consolas,'Courier New',monospace; color:#aeb6c5; line-height:1.5; }
+    .usage-nums .warn { color:#ffb26b; }
+    .usage-actions { padding:8px 14px 12px; display:flex; gap:8px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="head">
+      <div id="title">LunAV Developer Console <span id="badge">DEBUG</span></div>
+      <div id="tools"><select id="filter" title="Filter logs"><option value="all">All logs</option><option value="compact">Compact (hide duplicates)</option><option value="problem">Errors &amp; warnings only</option></select><button id="copy">Copy</button><button id="clear">Clear</button></div>
+    </div>
+    <div id="meta" data-vi="Đây là log kỹ thuật của LunAV. Nội dung ở đây KHÔNG được đưa vào lịch sử hội thoại gửi cho Gemini." data-en="This is LunAV technical logging. These logs are NOT included in chat history sent to Gemini.">This is LunAV technical logging. These logs are NOT included in chat history sent to Gemini.</div>
+    <div id="body">
+      <div id="logs"><div id="empty">No logs yet.</div></div>
+      <aside id="side">
+        <section class="panel">
+          <div class="panel-title">Program Storage</div>
+          <div id="storage-total" class="storage-total">Loading…</div>
+          <div id="storage-sub" class="storage-sub">Dung lượng toàn bộ thư mục chương trình</div>
+          <div id="storage-bar" aria-label="Program storage"><div id="seg-models" class="seg models" style="width:0"></div><div id="seg-runtime" class="seg runtime" style="width:0"></div><div id="seg-other" class="seg other" style="width:0"></div></div>
+          <div id="storage-legend"></div>
+          <div id="storage-updated">Not updated</div>
+          <div id="storage-error" class="storage-error" hidden></div>
+        </section>
+        <section class="panel">
+          <div class="panel-title">System Health</div>
+          <div id="health-summary" class="field-status">Checking…</div>
+          <div id="health-details" class="field-note" style="white-space:pre-line; margin-top:8px;"></div>
+          <div class="field-actions" style="margin-top:8px;">
+            <button id="health-refresh">Kiểm tra</button>
+            <button id="integrity-check">Kiểm tra file</button>
+          </div>
+          <div id="integrity-status" class="field-status"></div>
+        </section>
+        <div id="runtime-accordion">
+          <button id="runtime-toggle" type="button" aria-expanded="false">
+            <span>🛠 Runtime &amp; Debug</span><span class="accordion-arrow">▾</span>
+          </button>
+          <div id="runtime-wrap"><div id="runtime-inner">
+            <section class="panel">
+              <div class="panel-title">Debug Settings</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-name">Coordinate Tracking</div>
+                  <div class="setting-desc">Show cursor coordinates for hitbox tuning.</div>
+                </div>
+                <label class="switch" title="Enable or disable Coordinate Tracking">
+                  <input id="coordinate-toggle" type="checkbox">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div id="tracking-status">Loading status…</div>
+            </section>
+
+            <div id="performance-accordion" class="accordion">
+              <button id="performance-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+                <span id="performance-toggle-label">⚡ Performance Mode</span><span class="accordion-arrow">▾</span>
+              </button>
+              <div class="accordion-wrap"><div class="accordion-inner">
+                <section class="panel">
+                  <div class="setting-name">Performance</div>
+                  <div class="setting-desc">Reduce FPS and input polling when idle.</div>
+                  <div id="performance-modes" class="mode-grid"></div>
+                  <div id="performance-stat" class="perf-stat">Measuring…</div>
+                </section>
+              </div></div>
+            </div>
+
+            <div id="tracking-accordion" class="accordion">
+              <button id="tracking-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+                <span id="tracking-toggle-label">🖱 Mouse Tracking</span><span class="accordion-arrow">▾</span>
+              </button>
+              <div class="accordion-wrap"><div class="accordion-inner">
+                <section class="panel">
+                  <div class="setting-name">Tracking Mode</div>
+                  <div class="setting-desc">Adjust eye/head response to the cursor.</div>
+                  <div id="tracking-modes" class="mode-grid"></div>
+                </section>
+              </div></div>
+            </div>
+
+            <!-- Restored from 2.2.3: keep the original memory/tools controls available
+                 while preserving the new Runtime & Debug accordion introduced in 2.2.4. -->
+            <section class="panel">
+              <div class="panel-title">Memory Manager</div>
+              <div class="field-note">View what LunAV has stored about the user. This panel only opens the existing manager; memory editing remains unchanged.</div>
+              <button id="memory-open" class="manager-btn">🧠 Open Memory Manager</button>
+            </section>
+
+            <div id="tools-accordion" class="accordion">
+              <button id="tools-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+                <span>🛡 AI Tools &amp; Permissions</span><span class="accordion-arrow">▾</span>
+              </button>
+              <div class="accordion-wrap"><div class="accordion-inner">
+                <section class="panel">
+                  <div class="setting-name">Tool Permissions</div>
+                  <div class="setting-desc">Disable AI capabilities individually. Changes apply immediately.</div>
+                  <div id="tool-permissions" class="permission-grid"></div>
+                </section>
+              </div></div>
+            </div>
+
+            <div id="desktop-voice-accordion" class="accordion">
+              <button id="desktop-voice-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+                <span>🎙 Desktop Voice</span><span class="accordion-arrow">▾</span>
+              </button>
+              <div class="accordion-wrap"><div class="accordion-inner"><section class="panel">
+                <div class="setting-desc">Tune microphone detection and auto-listening.</div>
+                <div class="compact-grid">
+                  <label>End silence (ms)<input id="dv-silence" type="number" min="300" max="3000" step="50"></label>
+                  <label>Max turn (s)<input id="dv-max" type="number" min="5" max="60" step="1"></label>
+                  <label>Noise sensitivity<input id="dv-noise" type="number" min="1.2" max="6" step="0.1"></label>
+                </div>
+                <label class="check-row"><input id="dv-auto" type="checkbox"> Listen again after LunAV replies</label>
+                <button id="dv-save" class="mini-save">Save Desktop Voice</button>
+                <div id="dv-status" class="field-status">Loading…</div>
+              </section></div></div>
+            </div>
+
+            <div id="screen-watch-accordion" class="accordion">
+              <button id="screen-watch-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+                <span>👁 Screen Watching</span><span class="accordion-arrow">▾</span>
+              </button>
+              <div class="accordion-wrap"><div class="accordion-inner"><section class="panel">
+                <div class="setting-desc">Control screen observation and Gemini usage.</div>
+                <label class="check-row"><input id="sw-observer" type="checkbox"> 🔭 Enable Curious Observer</label>
+                <div class="field-note">Watches for meaningful screen changes and stays idle when you are away.</div>
+                <div class="compact-grid">
+                  <label>Capture interval (s)<input id="sw-interval" type="number" min="5" max="300" step="1"></label>
+                  <label>Stop after (min)<input id="sw-max" type="number" min="1" max="120" step="1"></label>
+                  <label>Observer tick (s)<input id="sw-proactive" type="number" min="40" max="900" step="5"></label>
+                  <label>Gemini calls / hour<input id="sw-cap" type="number" min="1" max="120" step="1"></label>
+                  <label>Cooldown break curiosity<input id="sw-gate" type="number" min="0" max="100" step="5"></label>
+                </div>
+                <label class="check-row"><input id="sw-skip" type="checkbox"> Skip nearly unchanged screens</label>
+                <label class="check-row"><input id="sw-auto" type="checkbox"> Allow proactive screen watching</label>
+                <button id="sw-save" class="mini-save">Save Screen Watching</button>
+                <div id="sw-status" class="field-status">Loading…</div>
+              </section></div></div>
+            </div>
+          </div></div>
+        </div>
+
+        <div id="usage-accordion" class="accordion">
+          <button id="usage-toggle" class="accordion-toggle" type="button" aria-expanded="false">
+            <span id="usage-toggle-label">⌁ Key Usage</span><span class="accordion-arrow">▾</span>
+          </button>
+          <div class="accordion-wrap"><div class="accordion-inner">
+            <div id="usage-summary" class="usage-sum">...</div>
+            <div class="usage-note" id="usage-note"></div>
+            <div id="usage-list"></div>
+            <div class="usage-actions"><button id="usage-refresh" type="button">Refresh</button><button id="usage-reset" type="button">Reset today</button></div>
+          </div></div>
+        </div>
+
+        <div id="keys-accordion">
+          <button id="keys-toggle" type="button" aria-expanded="false">
+            <span id="keys-toggle-label" data-vi="🔑 Key &amp; Token" data-en="🔑 Keys &amp; Tokens">🔑 Key &amp; Token</span>
+            <span class="accordion-arrow">▾</span>
+          </button>
+          <div id="keys-accordion-wrap">
+            <div id="keys-accordion-inner">
+              <section class="panel">
+                <div class="panel-title">Gemini API Key</div>
+                <div class="field-row"><input id="gemini-key-input" type="password" placeholder="Dán Gemini API key…" autocomplete="off" spellcheck="false"></div>
+                <div class="field-actions">
+                  <button id="gemini-key-save">Save</button>
+                  <button id="gemini-key-delete">Delete</button>
+                </div>
+                <div id="gemini-key-status" class="field-status">Loading…</div>
+              </section>
+              <section class="panel">
+                <div class="panel-title">Tavily API Key</div>
+                <div class="field-note">Optional fallback when DuckDuckGo returns no result.</div>
+                <div class="field-row"><input id="tavily-key-input" type="password" placeholder="Dán Tavily API key…" autocomplete="off" spellcheck="false"></div>
+                <div class="field-actions">
+                  <button id="tavily-key-save">Save</button>
+                  <button id="tavily-key-delete">Delete</button>
+                </div>
+                <div id="tavily-key-status" class="field-status">Loading…</div>
+              </section>
+              <section class="panel">
+                <div class="panel-title">Discord (voice)</div>
+                <div class="field-label">Server ID (guildId)</div>
+                <div class="field-row"><input id="discord-guild-input" type="text" placeholder="VD: 123456789012345678" autocomplete="off" spellcheck="false"></div>
+                <div class="field-label">User ID (userId)</div>
+                <div class="field-row"><input id="discord-user-input" type="text" placeholder="VD: 123456789012345678" autocomplete="off" spellcheck="false"></div>
+                <div class="field-label">Bot Token</div>
+                <div class="field-row"><input id="discord-token-input" type="password" placeholder="Paste bot token…" autocomplete="off" spellcheck="false"></div>
+                <div class="field-actions">
+                  <button id="discord-save">Save</button>
+                  <button id="discord-token-delete">Delete Token</button>
+                </div>
+                <div id="discord-status" class="field-status">Loading…</div>
+                <div class="field-note">🔒 Token is validated and stored securely. Leave it empty to update only Server/User IDs.</div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div id="observer-modal" role="dialog" aria-modal="true" aria-labelledby="observer-modal-title">
+    <div class="observer-card">
+      <div class="observer-icon">👁</div>
+      <div id="observer-modal-title" class="observer-title">Enable Curious Observer?</div>
+      <div id="observer-modal-copy" class="observer-copy">LunAV will periodically inspect your screen and send reduced screenshots to Gemini when meaningful changes are detected.</div>
+      <div id="observer-modal-warning" class="observer-warning">Avoid enabling this while sensitive information such as passwords, banking pages, or private messages is visible.</div>
+      <div class="observer-actions">
+        <button id="observer-cancel">Cancel</button>
+        <button id="observer-confirm" class="primary">Enable</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const logs = document.getElementById('logs');
+    const meta = document.getElementById('meta');
+    const coordinateToggle = document.getElementById('coordinate-toggle');
+    const trackingStatus = document.getElementById('tracking-status');
+    const healthSummary = document.getElementById('health-summary');
+    const healthDetails = document.getElementById('health-details');
+    const integrityStatus = document.getElementById('integrity-status');
+    const performanceModesEl = document.getElementById('performance-modes');
+    const trackingModesEl = document.getElementById('tracking-modes');
+    const performanceStat = document.getElementById('performance-stat');
+
+    // ---- Accordion Key & Token: gộp Gemini/Tavily/Discord lại cho gọn, bấm tiêu đề để trượt
+    // xuống/lên. Nhớ trạng thái đóng/mở qua localStorage để lần sau mở lại Developer Console vẫn
+    // giữ nguyên như lúc đóng cửa sổ. Mặc định ĐÓNG cho gọn gàng (chỉ mở khi cần chỉnh key/token).
+    (function initKeysAccordion() {
+      const acc = document.getElementById('keys-accordion');
+      const toggle = document.getElementById('keys-toggle');
+      if (!acc || !toggle) return;
+      let open = false;
+      function render() {
+        acc.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      render();
+      toggle.addEventListener('click', () => { open = !open; render(); });
+    })();
+
+    function initAccordion(id) {
+      const acc = document.getElementById(id);
+      const toggle = acc?.querySelector('.accordion-toggle');
+      if (!acc || !toggle) return;
+      let open = false;
+      function render() { acc.classList.toggle('open', open); toggle.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+      render();
+      toggle.addEventListener('click', () => { open = !open; render(); });
+    }
+    (function initRuntimeAccordion() {
+      const acc = document.getElementById('runtime-accordion');
+      const toggle = document.getElementById('runtime-toggle');
+      if (!acc || !toggle) return;
+      let open = false;
+      function render() {
+        acc.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      render();
+      toggle.addEventListener('click', () => { open = !open; render(); });
+    })();
+    initAccordion('usage-accordion');
+    initAccordion('performance-accordion');
+    /* ---------- Key Usage: các chức năng đang dùng API key (mặc định thu gọn) ---------- */
+    (function initUsagePanel() {
+      const acc = document.getElementById('usage-accordion');
+      if (!acc) return;
+      const sum = document.getElementById('usage-summary');
+      const note = document.getElementById('usage-note');
+      const list = document.getElementById('usage-list');
+      const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const num = (n) => Number(n || 0).toLocaleString();
+      const ago = (t) => {
+        if (!t) return tr('chưa gọi lần nào', 'not called yet');
+        const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+        if (s < 60) return tr(s + ' giây trước', s + 's ago');
+        if (s < 3600) return tr(Math.round(s / 60) + ' phút trước', Math.round(s / 60) + ' min ago');
+        return tr(Math.round(s / 3600) + ' giờ trước', Math.round(s / 3600) + ' h ago');
+      };
+      async function refresh() {
+        let u;
+        try { u = await window.api.getUsage(); } catch (e) { sum.textContent = String(e && e.message || e); return; }
+        if (!u || !u.ok) { sum.textContent = tr('Không đọc được số liệu', 'Could not read usage'); return; }
+        const t = u.total || {};
+        sum.innerHTML = esc(tr('Hôm nay', 'Today')) + ' (' + esc(u.day) + '): <b>' + num(t.calls) + '</b> ' + esc(tr('lần gọi', 'calls')) +
+          ' • ' + num(t.inTok) + ' in / ' + num(t.outTok) + ' out tokens • ' + esc(tr('lỗi', 'errors')) + ' ' + num(t.errors) +
+          ' (429: ' + num(t.rateLimited) + ') • ' + esc(tr('1 giờ qua', 'last hour')) + ': ' + num(t.lastHour);
+        note.innerHTML = esc(tr('Model chính (chat, voice, Discord...)', 'Main models (chat, voice, Discord...)')) + ': ' + esc((u.mainModels || []).join(' → ')) + '<br>' +
+          esc(tr('Model nền (theo dõi, học hỏi)', 'Background models (watching, learning)')) + ': ' + esc((u.backgroundModels || []).join(' → ')) + '<br>' +
+          esc(tr('Số token chỉ là ước lượng từ phản hồi của Gemini; lệnh gọi có tool hoặc TTS có thể không có token.', 'Token counts come from Gemini responses; tool and TTS calls may lack them.'));
+        list.innerHTML = (u.rows || []).map((r) => {
+          const bg = r.tier === 'background';
+          const chip = r.tier === 'background' ? tr('model nền', 'background model') : (r.tier === 'tts' ? 'TTS' : tr('model chính', 'main model'));
+          const models = Object.keys(r.models || {}).map((k) => k + '×' + r.models[k]).join(', ') || '—';
+          return '<div class="usage-fn"><div class="usage-fn-head"><span>' + esc(tr(r.vi, r.en)) + '</span><span class="usage-chip' + (bg ? ' bg' : '') + '">' + esc(chip) + '</span></div>' +
+            '<div class="usage-desc">' + esc(tr(r.viDesc, r.enDesc)) + '</div>' +
+            '<div class="usage-nums">' + num(r.calls) + ' ' + esc(tr('lần', 'calls')) + ' • ' + num(r.lastHour) + '/' + esc(tr('giờ', 'h')) +
+            ' • ' + num(r.inTok) + '/' + num(r.outTok) + ' tok' +
+            (r.errors ? ' • <span class="warn">' + esc(tr('lỗi', 'err')) + ' ' + num(r.errors) + (r.rateLimited ? ' (429×' + num(r.rateLimited) + ')' : '') + '</span>' : '') +
+            '<br>' + esc(models) + ' • ' + esc(ago(r.lastAt)) + '</div></div>';
+        }).join('');
+      }
+      document.getElementById('usage-refresh').addEventListener('click', refresh);
+      document.getElementById('usage-reset').addEventListener('click', async () => { await window.api.resetUsage(); refresh(); });
+      document.getElementById('usage-toggle').addEventListener('click', () => { if (acc.classList.contains('open')) refresh(); });
+      setInterval(() => { if (acc.classList.contains('open') && !document.hidden) refresh(); }, 5000);
+    })();
+
+    initAccordion('tracking-accordion');
+    initAccordion('tools-accordion');
+    initAccordion('desktop-voice-accordion');
+    initAccordion('screen-watch-accordion');
+    loadVoiceWatchSettings();
+
+    const geminiKeyInput = document.getElementById('gemini-key-input');
+    const geminiKeyStatus = document.getElementById('gemini-key-status');
+    const tavilyKeyInput = document.getElementById('tavily-key-input');
+    const tavilyKeyStatus = document.getElementById('tavily-key-status');
+    const discordGuildInput = document.getElementById('discord-guild-input');
+    const discordUserInput = document.getElementById('discord-user-input');
+    const discordTokenInput = document.getElementById('discord-token-input');
+    const discordStatus = document.getElementById('discord-status');
+    const storageTotal = document.getElementById('storage-total');
+    const storageUpdated = document.getElementById('storage-updated');
+    const storageError = document.getElementById('storage-error');
+    const storageLegend = document.getElementById('storage-legend');
+    let items = [];
+    const MAX = 700;
+    let storageScanTimer = 0;
+    let storageScanBusy = false;
+
+    function translateConsoleText(v) {
+      let x = String(v ?? '');
+      const map = [
+        ['Không lưu được setting debug:', 'Failed to save debug settings:'],
+        ['không lưu được', 'save failed'],
+        ['Đã lưu', 'Saved'],
+        ['Đang kiểm tra', 'Checking'],
+        ['Không đọc được', 'Could not read'],
+        ['Không thể', 'Could not'],
+        ['không ghi duoc', 'write failed'],
+        ['khong doc duoc', 'read failed'],
+        ['khong ghi duoc', 'write failed'],
+        ['khong hien duoc', 'could not show'],
+        ['man hinh gan nhu khong doi, bo qua luot nay (khong goi Gemini)', 'screen nearly unchanged; skipped Gemini'],
+        ['thay doi man hinh qua nho, bo qua Vision API', 'screen change too small; skipped Vision API'],
+        ['im lang: dang trong khoang nghi va khong co world_state de xet curiosity', 'silent: cooldown active and no world state to evaluate curiosity'],
+        ['cho phep', 'allow'],
+        ['im lang', 'silent'],
+        ['khong goi Gemini', 'Gemini not called'],
+        ['BAT', 'ON'],
+        ['TAT', 'OFF'],
+        ['da luu', 'saved'],
+        ['CHUA', 'NOT'],
+        ['loi', 'error'],
+        ['Lỗi', 'Error'],
+        ['Đã', 'Done'],
+        ['không', 'not'],
+        ['đang', 'currently'],
+        ['xoá', 'deleted'],
+        ['xoá', 'deleted'],
+        ['xóa', 'deleted'],
+        ['toạ độ', 'coordinates'],
+        ['tọa độ', 'coordinates'],
+        ['cài đặt', 'settings'],
+        ['màn hình', 'screen'],
+        ['theo dõi', 'watching'],
+        ['tự quan sát', 'auto-observer'],
+        ['quan sát', 'observe'],
+        ['khoảng nghỉ', 'cooldown'],
+        ['bị lỗi', 'failed'],
+        ['không được', 'failed'],
+      ];
+      for (const [a,b] of map) x = x.replaceAll(a,b);
+      return x;
+    }
+    function escText(v) { return translateConsoleText(v); }
+    function stamp(t) {
+      return new Date(Number(t) || Date.now()).toLocaleTimeString(appLanguage === 'en' ? 'en-US' : 'vi-VN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+    let appLanguage = 'en';
+    function tr(vi, en) { return en; }
+    function applyConsoleLanguage(_lang) {
+      appLanguage = 'en';
+      document.documentElement.lang = appLanguage;
+      const meta = document.getElementById('meta');
+      if (meta) meta.textContent = tr(meta.dataset.vi, meta.dataset.en);
+      document.getElementById('empty').textContent = tr('Chưa có log.', 'No logs yet.');
+      document.getElementById('clear').textContent = tr('Xoá', 'Clear');
+      const titles = document.querySelectorAll('.panel-title');
+      const enTitles = ['Program Storage','System Health','Debug Settings','Gemini API Key','Tavily API Key','Discord (voice)'];
+      titles.forEach((el,i) => { if (i < enTitles.length) el.textContent = enTitles[i]; });
+      const perfLabel = document.getElementById('performance-toggle-label'); if (perfLabel) perfLabel.textContent = '⚡ Performance Mode';
+      const trackLabel2 = document.getElementById('tracking-toggle-label'); if (trackLabel2) trackLabel2.textContent = '🖱 Mouse Tracking';
+      const memoryOpen = document.getElementById('memory-open'); if (memoryOpen) memoryOpen.textContent = '🧠 Open Memory Manager';
+      const coordinateDesc = document.querySelector('#coordinate-toggle')?.closest('.setting-row')?.querySelector('.setting-desc'); if (coordinateDesc) coordinateDesc.textContent = 'Show cursor coordinates for hitbox tuning.';
+      const coordinateSwitch = document.querySelector('#coordinate-toggle')?.closest('.switch'); if (coordinateSwitch) coordinateSwitch.title = 'Enable or disable Coordinate Tracking';
+      const perfDesc = document.querySelector('#performance-accordion .setting-desc'); if (perfDesc) perfDesc.textContent = 'Reduce FPS and input polling when idle.';
+      const trackDesc = document.querySelector('#tracking-accordion .setting-desc'); if (trackDesc) trackDesc.textContent = 'Adjust eye/head response to the cursor.';
+      const storageSub = document.getElementById('storage-sub'); if (storageSub) storageSub.textContent = 'Total program folder size';
+      const storageUpdated = document.getElementById('storage-updated'); if (storageUpdated && !storageUpdated.textContent.startsWith('Updated')) storageUpdated.textContent = 'Not updated';
+      const keysLabel = document.getElementById('keys-toggle-label'); if (keysLabel) keysLabel.textContent = '🔑 Keys & Tokens';
+      loadToolPermissions().catch(() => {});
+    }
+
+    function formatBytes(bytes) {
+      const n = Number(bytes) || 0;
+      if (n < 1024) return `${n} B`;
+      const units = ['KB','MB','GB','TB'];
+      let v = n / 1024, i = 0;
+      while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+      return `${v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)} ${units[i]}`;
+    }
+    function kindOf(item) {
+      const s = String(item?.text || '');
+      if (/^\[SEARCH\]|DuckDuckGo|Tavily|search provider/i.test(s)) return 'search';
+      if (/^\[(CHAIN|SHADOW|GATE|DECISION|DELAYED|AGENCY)\]/i.test(s)) return 'decision';
+      if (/^\[(MODEL|MẠNG|NET)\]/i.test(s)) return 'net';
+      if (/^\[CHAT\].*(không trả lời được|failed to respond)/i.test(s)) return 'warn';
+      if (/^\[CHAT\]|gemini-.*•|model ping/i.test(s)) return 'chat';
+      if (/^\[TTS/i.test(s)) return 'tts';
+      if (/^\[SCREEN\]|^\[WATCH\]|watchTick|screen:/i.test(s)) return /WATCH|watchTick/i.test(s) ? 'watch' : 'screen';
+      if (/^TOUCH\s*•/i.test(s) && /tọa độ/i.test(s)) return 'touch-debug';
+      if (/^TOUCH\s*•/i.test(s) || item?.level === 'touch') return 'touch';
+      if (/error|lỗi|HTTP\s*[45]\d\d|NETWORK|exception|rejection/i.test(s) || item?.level === 'error') return 'error';
+      if (item?.level === 'warn') return 'warn';
+      return '';
+    }
+    const TAG_LABEL_EN = { 'CHAIN': 'DECISION', 'SHADOW': 'COMPARE', 'DECISION': 'DECISION', 'GATE': 'SPEECH GATE', 'DELAYED': 'LATER', 'AGENCY': 'PROACTIVE', 'MẠNG': 'NET', 'CHAT-STREAM': 'CHAT', 'TIMELINE': 'TIMELINE' };
+    const TAG_LABEL = { 'CHAIN': 'QUYẾT ĐỊNH', 'SHADOW': 'SO SÁNH', 'DECISION': 'QUYẾT ĐỊNH', 'GATE': 'CỔNG NÓI', 'DELAYED': 'NHẮC SAU', 'AGENCY': 'CHỦ ĐỘNG', 'NET': 'MẠNG', 'CHAT-STREAM': 'CHAT', 'TIMELINE': 'THỜI GIAN' };
+    let filterMode = 'all';
+    function bodyOf(item) { return String(item?.text || '').replace(/^\[[^\]]+\]\s*/, '').trim(); }
+    function visibleItems() {
+      const out = [];
+      let prevBody = null;
+      for (const item of items) {
+        const body = bodyOf(item);
+        const k = kindOf(item);
+        const tag = (String(item?.text || '').match(/^\[([^\]]+)\]/) || [])[1];
+        // Gộp dòng trùng liền kề (ví dụ [APP] và LOG cùng nội dung)
+        if (filterMode !== 'all' && body && body === prevBody) continue;
+        if (filterMode === 'compact') {
+          if (k === 'touch' || k === 'touch-debug') continue;
+          if (tag && /^(APP|TIMELINE)$/i.test(tag)) continue;
+        } else if (filterMode === 'problem') {
+          if (!['error', 'warn', 'net'].includes(k)) continue;
+        }
+        prevBody = body;
+        out.push(item);
+      }
+      return out;
+    }
+    function levelText(item) {
+      const s = String(item?.text || '');
+      const m = s.match(/^\[([^\]]+)\]/);
+      if (m) { const k = m[1].toUpperCase(); return (item?.mode === 'en' ? (TAG_LABEL_EN[k] || TAG_LABEL[k]) : TAG_LABEL[k]) || k; }
+      if (item?.level === 'error') return 'ERROR';
+      if (item?.level === 'warn') return 'WARN';
+      if (item?.level === 'info') return 'INFO';
+      if (item?.level === 'debug') return 'DEBUG';
+      if (item?.level === 'renderer') return 'RENDER';
+      if (item?.level === 'touch') return 'TOUCH';
+      return 'LOG';
+    }
+    function render() {
+      const frag = document.createDocumentFragment();
+      const shown = visibleItems();
+      if (!shown.length) {
+        const e = document.createElement('div'); e.id = 'empty'; e.textContent = items.length ? tr('Không có dòng nào khớp bộ lọc.', 'No lines match the filter.') : tr('Chưa có log.', 'No logs yet.'); frag.appendChild(e);
+      } else {
+        for (const item of shown) {
+          const row = document.createElement('div'); row.className = 'line ' + kindOf(item);
+          const t = document.createElement('span'); t.className = 'time'; t.textContent = stamp(item.t);
+          const l = document.createElement('span'); l.className = 'level'; l.textContent = levelText(item);
+          const x = document.createElement('span'); x.className = 'text'; x.textContent = item.mode === 'vi' ? String(item.text ?? '') : escText(item.text);
+          row.append(t,l,x); frag.appendChild(row);
+        }
+      }
+      logs.replaceChildren(frag);
+      logs.scrollTop = logs.scrollHeight;
+      meta.textContent = `${filterMode === 'all' ? items.length : shown.length + '/' + items.length} log • ${tr('Log kỹ thuật không đi vào lịch sử hội thoại', 'Technical logs are not included in chat history')}`;
+    }
+    function add(item) {
+      if (!item) return;
+      items.push(item);
+      if (items.length > MAX) items.splice(0, items.length - MAX);
+      render();
+    }
+
+    function updateTrackingStatus(enabled) {
+      coordinateToggle.checked = !!enabled;
+      trackingStatus.textContent = enabled ? tr('● Đang bật • log tọa độ khi rê chuột', '● On • log coordinates while moving the mouse') : tr('○ Đang tắt • LunAV vẫn tương tác bình thường', '○ Off • LunAV continues to work normally');
+      trackingStatus.className = enabled ? 'on' : 'off';
+    }
+
+    function setDiscordStatus(d) {
+      d = d || {};
+      const parts = [
+        d.hasToken ? tr('🔑 botToken: đã lưu (mã hoá)', '🔑 botToken: saved (encrypted)') : tr('⚠️ botToken: CHƯA có', '⚠️ botToken: NOT configured'),
+        (d.guildId && d.userId) ? tr('guildId/userId: đã có', 'guildId/userId: configured') : tr('guildId/userId: còn thiếu', 'guildId/userId: missing'),
+      ];
+      discordStatus.textContent = parts.join(' • ');
+      discordStatus.className = 'field-status ' + (d.hasToken && d.guildId && d.userId ? 'on' : 'off');
+    }
+
+    function renderModeButtons(container, modes, current, onClick) {
+      if (!container) return;
+      container.replaceChildren();
+      for (const [id, info] of Object.entries(modes || {})) {
+        const b = document.createElement('button');
+        b.className = 'mode-btn' + (id === current ? ' active' : '');
+        b.textContent = info.label || id;
+        b.addEventListener('click', async () => { b.disabled = true; try { await onClick(id); } finally { b.disabled = false; } });
+        container.appendChild(b);
+      }
+    }
+    var observerWasOn; // (var, không phải let: hàm load được gọi sớm hơn dòng này) trạng thái Curious Observer lúc tải, để biết khi nào người dùng vừa BẬT mới
+    async function loadVoiceWatchSettings() {
+      try {
+        const [dv, sw] = await Promise.all([window.api.getDesktopVoiceSettings(), window.api.getScreenWatchSettings()]);
+        const d = dv?.settings || {}, w = sw?.settings || {};
+        document.getElementById('dv-silence').value = d.silenceMs ?? 950;
+        document.getElementById('dv-max').value = d.maxTurnSec ?? 15;
+        document.getElementById('dv-noise').value = d.noiseMultiplier ?? 2.5;
+        document.getElementById('dv-auto').checked = d.autoListen === true;
+        document.getElementById('sw-interval').value = w.intervalSec ?? 15;
+        document.getElementById('sw-max').value = w.maxMin ?? 15;
+        document.getElementById('sw-proactive').value = w.proactiveIntervalSec ?? 60;
+        document.getElementById('sw-skip').checked = w.skipUnchanged !== false;
+        document.getElementById('sw-auto').checked = w.proactiveEnabled !== false;
+        document.getElementById('sw-observer').checked = w.autoObserverEnabled === true;
+        observerWasOn = w.autoObserverEnabled === true;
+        document.getElementById('sw-cap').value = w.autoObserverMaxPerHour ?? 20;
+        document.getElementById('sw-gate').value = w.breakCooldownMinCuriosity ?? 70;
+      } catch {}
+    }
+    document.getElementById('dv-save').addEventListener('click', async () => {
+      const r = await window.api.setDesktopVoiceSettings({
+        silenceMs: Number(document.getElementById('dv-silence').value),
+        maxTurnSec: Number(document.getElementById('dv-max').value),
+        noiseMultiplier: Number(document.getElementById('dv-noise').value),
+        autoListen: document.getElementById('dv-auto').checked,
+      });
+      document.getElementById('dv-status').textContent = r?.ok ? '✓ Saved' : '⚠️ ' + (r?.error || 'Save failed');
+    });
+    function confirmObserverEnable(cap) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('observer-modal');
+        const cancel = document.getElementById('observer-cancel');
+        const confirm = document.getElementById('observer-confirm');
+        const copy = document.getElementById('observer-modal-copy');
+        copy.textContent = `LunAV will inspect your screen in the background and send reduced screenshots to Gemini when meaningful changes are detected. Limit: ${Number(cap) || 20} Gemini calls per hour.`;
+        modal.classList.add('show');
+        const cleanup = (value) => {
+          modal.classList.remove('show');
+          cancel.removeEventListener('click', onCancel);
+          confirm.removeEventListener('click', onConfirm);
+          modal.removeEventListener('click', onBackdrop);
+          document.removeEventListener('keydown', onKey);
+          resolve(value);
+        };
+        const onCancel = () => cleanup(false);
+        const onConfirm = () => cleanup(true);
+        const onBackdrop = (e) => { if (e.target === modal) cleanup(false); };
+        const onKey = (e) => { if (e.key === 'Escape') cleanup(false); };
+        cancel.addEventListener('click', onCancel);
+        confirm.addEventListener('click', onConfirm);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKey);
+        confirm.focus();
+      });
+    }
+    document.getElementById('sw-save').addEventListener('click', async () => {
+      const wantObserver = document.getElementById('sw-observer').checked;
+      if (wantObserver && !observerWasOn) {
+        const ok = await confirmObserverEnable(Number(document.getElementById('sw-cap').value) || 20);
+        if (!ok) {
+          document.getElementById('sw-observer').checked = false;
+          document.getElementById('sw-status').textContent = 'Observer enable canceled';
+          return;
+        }
+      }
+      const r = await window.api.setScreenWatchSettings({
+        intervalSec: Number(document.getElementById('sw-interval').value),
+        maxMin: Number(document.getElementById('sw-max').value),
+        proactiveIntervalSec: Number(document.getElementById('sw-proactive').value),
+        skipUnchanged: document.getElementById('sw-skip').checked,
+        proactiveEnabled: document.getElementById('sw-auto').checked,
+        autoObserverEnabled: wantObserver,
+        autoObserverMaxPerHour: Number(document.getElementById('sw-cap').value),
+        breakCooldownMinCuriosity: Number(document.getElementById('sw-gate').value),
+      });
+      if (r?.ok) observerWasOn = wantObserver;
+      document.getElementById('sw-status').textContent = r?.ok ? '✓ Saved' : '⚠️ ' + (r?.error || 'Save failed');
+    });
+    // Menu chuột phải ở cửa sổ nhân vật cũng đổi được Observer -> nạp lại khi mở khung này cho khỏi lệch trạng thái.
+    document.getElementById('screen-watch-toggle').addEventListener('click', () => { loadVoiceWatchSettings(); });
+    async function refreshPerformanceStats() {
+      try {
+        const r = await window.api.getPerformanceStats();
+        if (!r || !r.ok) throw new Error(r?.error || 'No stats');
+        performanceStat.textContent = tr(`RAM app: ${r.totalMemoryMB} MB (Private)\nWorking Set: ${r.totalWorkingSetMB} MB\nCPU app: ${Number(r.totalCpu).toFixed(1)}%\nGPU CPU: ${Number(r.gpuCpu).toFixed(1)}%\nFPS limit: ${r.fps}\nTracking: ${r.mouseTrackingMode}`, `App RAM: ${r.totalMemoryMB} MB (Private)\nWorking Set: ${r.totalWorkingSetMB} MB\nApp CPU: ${Number(r.totalCpu).toFixed(1)}%\nGPU CPU: ${Number(r.gpuCpu).toFixed(1)}%\nFPS limit: ${r.fps}\nTracking: ${r.mouseTrackingMode}`);
+      } catch { performanceStat.textContent = tr('Không đọc được số liệu hiệu năng.', 'Could not read performance stats.'); }
+    }
+    async function setupRuntimeControls(r) {
+      const drawPerf = (current) => renderModeButtons(performanceModesEl, r.performanceModes, current, async (id) => {
+        const x = await window.api.setPerformanceMode(id);
+        if (x?.ok) drawPerf(x.performanceMode);
+        refreshPerformanceStats();
+      });
+      const drawTrack = (current) => renderModeButtons(trackingModesEl, r.mouseTrackingModes, current, async (id) => {
+        const x = await window.api.setMouseTrackingMode(id);
+        if (x?.ok) drawTrack(x.mouseTrackingMode);
+        refreshPerformanceStats();
+      });
+      drawPerf(r.performanceMode);
+      drawTrack(r.mouseTrackingMode);
+    }
+
+    const TOOL_LABELS = {
+      webSearch: ['Web Search', 'Tìm kiếm web'],
+      memory: ['Memory', 'Trí nhớ'],
+      discord: ['Discord', 'Discord'],
+      music: ['Music', 'Nhạc'],
+      screen: ['Screen Capture', 'Chụp màn hình'],
+      screenWatch: ['Screen Watching', 'Theo dõi màn hình'],
+      desktopVoice: ['Desktop Voice', 'Voice trên máy'],
+      tts: ['Text-to-Speech', 'Đọc thành tiếng'],
+      emotion: ['Emotion Engine', 'Biểu cảm'],
+      memoryWrite: ['Memory Write', 'Ghi memory'],
+    };
+    async function loadToolPermissions(data) {
+      const host = document.getElementById('tool-permissions');
+      if (!host) return;
+      const permissions = data?.toolPermissions || (await window.api.getToolPermissions())?.permissions || {};
+      host.replaceChildren();
+      for (const [id, labels] of Object.entries(TOOL_LABELS)) {
+        const row = document.createElement('div'); row.className = 'permission-row';
+        const span = document.createElement('span'); span.textContent = appLanguage === 'en' ? labels[0] : labels[1];
+        const sw = document.createElement('label'); sw.className = 'switch';
+        const input = document.createElement('input'); input.type = 'checkbox'; input.checked = permissions[id] !== false;
+        const slider = document.createElement('span'); slider.className = 'slider';
+        input.addEventListener('change', async () => {
+          input.disabled = true;
+          try {
+            const r = await window.api.setToolPermission(id, input.checked);
+            if (!r?.ok) input.checked = !input.checked;
+          } finally { input.disabled = false; }
+        });
+        sw.append(input, slider); row.append(span, sw); host.appendChild(row);
+      }
+    }
+
+    async function loadTrackingSetting() {
+      try {
+        const r = await window.api.getDevConsoleSettings();
+        applyConsoleLanguage(r.language);
+        updateTrackingStatus(!!r.coordinateTracking);
+        setupRuntimeControls(r);
+        loadToolPermissions(r);
+        const hasKey = !!(r.gemini && r.gemini.hasKey);
+        geminiKeyStatus.textContent = hasKey ? tr('● Đã cấu hình key', '● Key configured') : tr('○ Chưa có key', '○ No key');
+        geminiKeyStatus.className = 'field-status ' + (hasKey ? 'on' : 'off');
+        const hasTavilyKey = !!(r.tavily && r.tavily.hasKey);
+        tavilyKeyStatus.textContent = hasTavilyKey ? tr('● Đã cấu hình key', '● Key configured') : tr('○ Chưa có key (optional)', '○ No key (optional)');
+        tavilyKeyStatus.className = 'field-status ' + (hasTavilyKey ? 'on' : 'off');
+        const d = r.discord || {};
+        discordGuildInput.value = d.guildId || '';
+        discordUserInput.value = d.userId || '';
+        setDiscordStatus(d);
+      } catch {
+        updateTrackingStatus(true);
+      }
+    }
+
+    coordinateToggle.addEventListener('change', async () => {
+      coordinateToggle.disabled = true;
+      try {
+        const r = await window.api.setCoordinateDebug(coordinateToggle.checked);
+        updateTrackingStatus(!!r.coordinateTracking);
+      } catch {
+        coordinateToggle.checked = !coordinateToggle.checked;
+      } finally {
+        coordinateToggle.disabled = false;
+      }
+    });
+
+    document.getElementById('gemini-key-save').addEventListener('click', async () => {
+      const v = geminiKeyInput.value.trim();
+      if (!v) { geminiKeyStatus.textContent = tr('Dán key vào ô trước đã nhé.', 'Paste the key first.'); geminiKeyStatus.className = 'field-status off'; return; }
+      geminiKeyStatus.textContent = tr('Đang kiểm tra key…', 'Checking key…'); geminiKeyStatus.className = 'field-status';
+      try {
+        const r = await window.api.saveKey(v);
+        if (r && r.ok) {
+          geminiKeyInput.value = '';
+          geminiKeyStatus.textContent = tr('● Key mới đã được kiểm tra và lưu an toàn', '● New key checked and saved securely');
+          geminiKeyStatus.className = 'field-status on';
+        } else {
+          geminiKeyStatus.textContent = '⚠️ ' + (r && r.error ? r.error : 'Không lưu được key.');
+          geminiKeyStatus.className = 'field-status off';
+        }
+      } catch (e) {
+        geminiKeyStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        geminiKeyStatus.className = 'field-status off';
+      }
+    });
+
+    document.getElementById('gemini-key-delete').addEventListener('click', async () => {
+      try {
+        const r = await window.api.deleteKey();
+        geminiKeyStatus.textContent = r && r.ok ? tr('○ Đã xoá key', '○ Key deleted') : '⚠️ ' + (r && r.error ? r.error : tr('Không xoá được key.', 'Could not delete key.'));
+        geminiKeyStatus.className = 'field-status ' + (r && r.ok ? 'off' : 'off');
+      } catch (e) {
+        geminiKeyStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        geminiKeyStatus.className = 'field-status off';
+      }
+    });
+
+    document.getElementById('tavily-key-save').addEventListener('click', async () => {
+      const v = tavilyKeyInput.value.trim();
+      if (!v) { tavilyKeyStatus.textContent = 'Dán key vào ô trước đã nhé.'; tavilyKeyStatus.className = 'field-status off'; return; }
+      tavilyKeyStatus.textContent = tr('Đang kiểm tra key…', 'Checking key…'); tavilyKeyStatus.className = 'field-status';
+      try {
+        const r = await window.api.saveTavilyKey(v);
+        if (r && r.ok) {
+          tavilyKeyInput.value = '';
+          tavilyKeyStatus.textContent = tr('● Key mới đã được kiểm tra và lưu an toàn', '● New key checked and saved securely');
+          tavilyKeyStatus.className = 'field-status on';
+        } else {
+          tavilyKeyStatus.textContent = '⚠️ ' + (r && r.error ? r.error : 'Không lưu được key.');
+          tavilyKeyStatus.className = 'field-status off';
+        }
+      } catch (e) {
+        tavilyKeyStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        tavilyKeyStatus.className = 'field-status off';
+      }
+    });
+
+    document.getElementById('tavily-key-delete').addEventListener('click', async () => {
+      try {
+        const r = await window.api.deleteTavilyKey();
+        tavilyKeyStatus.textContent = r && r.ok ? tr('○ Đã xoá key', '○ Key deleted') : '⚠️ ' + (r && r.error ? r.error : tr('Không xoá được key.', 'Could not delete key.'));
+        tavilyKeyStatus.className = 'field-status off';
+      } catch (e) {
+        tavilyKeyStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        tavilyKeyStatus.className = 'field-status off';
+      }
+    });
+
+    document.getElementById('discord-save').addEventListener('click', async () => {
+      const savingToken = !!discordTokenInput.value.trim();
+      discordStatus.textContent = savingToken ? tr('Đang kiểm tra Token…', 'Checking Token…') : tr('Đang lưu…', 'Saving…');
+      discordStatus.className = 'field-status';
+      try {
+        const r = await window.api.saveDiscordConfig({
+          guildId: discordGuildInput.value,
+          userId: discordUserInput.value,
+          botToken: discordTokenInput.value,
+        });
+        if (r && r.ok) {
+          discordTokenInput.value = '';
+          const cur = await window.api.getDevConsoleSettings();
+          setDiscordStatus(cur.discord);
+        } else {
+          discordStatus.textContent = '⚠️ ' + (r && r.error ? r.error : 'Không lưu được.');
+          discordStatus.className = 'field-status off';
+        }
+      } catch (e) {
+        discordStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        discordStatus.className = 'field-status off';
+      }
+    });
+
+    document.getElementById('discord-token-delete').addEventListener('click', async () => {
+      discordStatus.textContent = tr('Đang xoá Token…', 'Deleting Token…'); discordStatus.className = 'field-status';
+      try {
+        const r = await window.api.deleteDiscordToken();
+        if (r && r.ok) {
+          discordTokenInput.value = '';
+          const cur = await window.api.getDevConsoleSettings();
+          setDiscordStatus(cur.discord);
+        } else {
+          discordStatus.textContent = '⚠️ ' + (r && r.error ? r.error : 'Không xoá được Token.');
+          discordStatus.className = 'field-status off';
+        }
+      } catch (e) {
+        discordStatus.textContent = '⚠️ Lỗi: ' + (e && e.message);
+        discordStatus.className = 'field-status off';
+      }
+    });
+
+    function renderHealth(data) {
+      if (!data || !data.ok) {
+        healthSummary.textContent = '⚠️ ' + (data?.error || tr('Không đọc được trạng thái.', 'Could not read health status.'));
+        healthSummary.className = 'field-status off';
+        return;
+      }
+      const g = data.gemini || {};
+      const geminiText = (g.models || []).map(x => `${x.model}: ${x.probeStatus || x.lastStatus || x.status}${x.probeLatencyMs ? ` ${x.probeLatencyMs}ms` : (x.latencyMs ? ` ${x.latencyMs}ms` : '')}`).join('\n');
+      const mem = data.memory || {};
+      const cache = data.ttsCache || {};
+      healthSummary.textContent = g.status === 'healthy' ? tr('● Gemini đang sẵn sàng', '● Gemini healthy') : tr('⚠️ Gemini đang suy giảm / cooldown', '⚠️ Gemini degraded / cooldown');
+      healthSummary.className = 'field-status ' + (g.status === 'healthy' ? 'on' : 'off');
+      healthDetails.textContent = `${tr('Model đang dùng', 'Working model')}: ${g.workingModel || '—'}\n${geminiText || '—'}\n${tr('Memory', 'Memory')}: ${mem.facts || 0} facts • ${mem.storyEvents || 0} story events\n${tr('TTS cache', 'TTS cache')}: ${cache.items || 0} items • ${cache.hits || 0} hits • ${cache.misses || 0} misses`;
+    }
+
+    async function refreshHealth() {
+      healthSummary.textContent = tr('Checking…', 'Checking…');
+      try { renderHealth(await window.api.getDevHealth()); }
+      catch (e) { renderHealth({ ok:false, error:String(e?.message || e) }); }
+    }
+
+    function renderStorage(data) {
+      if (!data || !data.ok) {
+        storageTotal.textContent = tr('Không đọc được', 'Could not read');
+        storageError.hidden = false;
+        storageError.textContent = data?.error || tr('Không thể quét dung lượng chương trình.', 'Could not scan program storage.');
+        return;
+      }
+      storageError.hidden = true;
+      storageTotal.textContent = formatBytes(data.total);
+      const total = Math.max(1, Number(data.total) || 0);
+      const segMap = { models: document.getElementById('seg-models'), runtime: document.getElementById('seg-runtime'), other: document.getElementById('seg-other') };
+      storageLegend.replaceChildren();
+      for (const cat of (data.categories || [])) {
+        const pct = Math.max(0, Math.min(100, (Number(cat.bytes) || 0) / total * 100));
+        if (segMap[cat.id]) segMap[cat.id].style.width = pct + '%';
+        const row = document.createElement('div'); row.className = 'storage-row';
+        const dot = document.createElement('span'); dot.className = 'dot ' + cat.id;
+        const name = document.createElement('span'); name.className = 'storage-name'; name.textContent = cat.label;
+        const size = document.createElement('span'); size.className = 'storage-size'; size.textContent = formatBytes(cat.bytes);
+        row.append(dot, name, size); storageLegend.appendChild(row);
+      }
+      const d = new Date(Number(data.updatedAt) || Date.now());
+      storageUpdated.textContent = tr('Cập nhật ', 'Updated ') + d.toLocaleTimeString(appLanguage === 'en' ? 'en-US' : 'vi-VN', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) + (data.approximate ? ' • Fast estimate' : '');
+    }
+
+    async function refreshStorage() {
+      if (storageScanBusy) return;
+      storageScanBusy = true;
+      try { renderStorage(await window.api.getProgramStorage()); }
+      catch (e) { renderStorage({ ok:false, error:String(e?.message || e) }); }
+      finally { storageScanBusy = false; }
+    }
+
+    window.api.onDevLogBatch(batch => { items = Array.isArray(batch) ? batch.slice(-MAX) : []; render(); });
+    window.api.onDevLog(item => add(item));
+    window.api.onDevLogClear(() => { items = []; render(); });
+    window.api.onCoordinateDebugSetting(updateTrackingStatus);
+    document.getElementById('clear').addEventListener('click', () => window.api.clearDevConsole());
+    document.getElementById('filter').addEventListener('change', (e) => { filterMode = e.target.value; render(); });
+    document.getElementById('health-refresh').addEventListener('click', refreshHealth);
+    const memoryOpenButton = document.getElementById('memory-open');
+    if (memoryOpenButton) memoryOpenButton.addEventListener('click', () => window.api.openMemoryManager());
+    document.getElementById('integrity-check').addEventListener('click', async () => {
+      integrityStatus.textContent = tr('Checking…', 'Checking…'); integrityStatus.className = 'field-status';
+      try {
+        const r = await window.api.verifyIntegrity();
+        integrityStatus.textContent = r && r.ok ? tr(`● ${r.checked} file hợp lệ`, `● ${r.checked} files verified`) : '⚠️ ' + (r?.error || tr(`${r?.failed || 0} file có vấn đề`, `${r?.failed || 0} files changed/missing`));
+        integrityStatus.className = 'field-status ' + (r && r.ok ? 'on' : 'off');
+      } catch (e) { integrityStatus.textContent = '⚠️ ' + String(e?.message || e); integrityStatus.className = 'field-status off'; }
+    });
+    document.getElementById('copy').addEventListener('click', async () => {
+      const text = items.map(x => `${stamp(x.t)} [${levelText(x)}] ${x.text}`).join('\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        meta.textContent = `${items.length} log • ${tr('Đã copy log vào clipboard', 'Logs copied to clipboard')}`;
+        setTimeout(() => { meta.textContent = `${items.length} log • ${tr('Log kỹ thuật không đi vào lịch sử hội thoại', 'Technical logs are not included in chat history')}`; }, 1500);
+      } catch {}
+    });
+    render();
+    loadTrackingSetting();
+    refreshStorage();
+    refreshHealth();
+    storageScanTimer = setInterval(refreshStorage, 300000);
+    const performanceTimer = setInterval(refreshPerformanceStats, 2000);
+    refreshPerformanceStats();
+    window.addEventListener('beforeunload', () => { clearInterval(storageScanTimer); clearInterval(performanceTimer); });
+  </script>
+</body>
+</html>
